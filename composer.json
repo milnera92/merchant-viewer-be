@@ -1,0 +1,17 @@
+{
+    "name": "andrew/merchant-viewer-be",
+    "autoload": {
+        "psr-4": {
+            "Andrew\\MerchantViewerBe\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Andrew Milner",
+            "email": "95140821+milnera92@users.noreply.github.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.5"
+    }
+}
