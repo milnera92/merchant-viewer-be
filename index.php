@@ -13,13 +13,12 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Database credentials
-$host = $_ENV['DB_HOST'];
-$port = $_ENV['DB_PORT'];
-$dbname = $_ENV['DB_NAME'];
-$username = $_ENV['DB_USERNAME'];
-$password = $_ENV['DB_PASSWORD'];
-$schema = $_ENV['DB_SCHEMA'];
-
+$host = getenv('DB_HOST');
+$port = getenv('DB_PORT');
+$dbname = getenv('DB_NAME');
+$username = getenv('DB_USERNAME');
+$password = getenv('DB_PASSWORD');
+$schema = getenv('DB_SCHEMA');
 
 // Create connection
 $conn = mysqli_connect($host, $username, $password, $dbname, $port);
