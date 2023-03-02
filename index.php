@@ -36,16 +36,11 @@ $terminals_result = mysqli_query($conn, $terminals_query);
 $transactions_query = "SELECT * FROM transactions";
 $transactions_result = mysqli_query($conn, $transactions_query);
 
-// Query batches
-$transactions_query = "SELECT * FROM terminal_batch_totals";
-$transactions_result = mysqli_query($conn, $terminal_batch_totals);
-
 // Format data as JSON response
 $data = [
     "merchants" => [],
     "terminals" => [],
-    "transactions" => [],
-    "terminal_batch_totals" => []
+    "transactions" => []
 ];
 
 while ($row = mysqli_fetch_assoc($merchants_result)) {
@@ -58,10 +53,6 @@ while ($row = mysqli_fetch_assoc($terminals_result)) {
 
 while ($row = mysqli_fetch_assoc($transactions_result)) {
     $data["transactions"][] = $row;
-}
-
-while ($row = mysqli_fetch_assoc($terminal_batch_totals)) {
-    $data["terminal_batch_totals"][] = $row;
 }
 
 header('Content-Type: application/json');
