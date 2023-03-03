@@ -18,70 +18,81 @@ $password = getenv('DB_PASSWORD');
 $schema = getenv('DB_SCHEMA');
 
 // Create connection
-$conn = mysqli_connect($host, $username, $password, $dbname, $port);
+$conn = new mysqli($host, $username, $password, $dbname, $port);
 
 // Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
 // Set the active schema
-mysqli_query($conn, "USE $schema");
+$conn->query("USE $schema");
 
 // Query merchants
 $merchants_query = "SELECT * FROM merchants";
-$merchants_result = mysqli_query($conn, $merchants_query);
+$merchants_result = $conn->query($merchants_query);
 
 // Query terminals
 $terminals_query = "SELECT * FROM terminals";
-$terminals_result = mysqli_query($conn, $terminals_query);
+$terminals_result = $conn->query($terminals_query);
 
 // Query transactions
 $transactions_query = "SELECT * FROM transactions";
-$transactions_result = mysqli_query($conn, $transactions_query);
+$transactions_result = $conn->query($transactions_query);
 
 // Query terminal batch totals
 $batch_totals_query = "SELECT * FROM terminal_batch_totals";
-$batch_totals_result = mysqli_query($conn, $batch_totals_query);
-
+$batch_totals_result = $conn->query($batch_totals_query);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Parse JSON data from POST body
     $data = json_decode(file_get_contents('php://input'), true);
-  
-// Update merchant data
-if (isset($data['merchant'])) {
-    $merchant = $data['merchant'];
-    $update_query = "UPDATE merchants SET name='{$merchant['name']}', address='{$merchant['address']}' WHERE id={$merchant['id']}";
-    if (mysqli_query($conn, $update_query)) {
-        // Query successful
-    } else {
-        // Query failed, log the error
-        error_log("Error updating merchant: " . mysqli_error($conn));
+    
+    // Update merchant data
+    if (isset($data['merchant'])) {
+        $merchant = $data['merchant'];
+        $update_query = "UPDATE merchants SET name=?, address=? WHERE id=?";
+        $stmt = $conn->prepare($update_query);
+        $stmt->bind_param("ssi", $merchant['name'], $merchant['address'], $merchant['id']);
+        if ($stmt->execute()) {
+            // Query successful
+        } else {
+            // Query failed, log the error
+            error_log("Error updating merchant: " . $stmt->error);
+        }
+        $stmt->close();
     }
-}
-  
+    
     // Insert new terminal data
     if (isset($data['terminal'])) {
-      $terminal = $data['terminal'];
-      $insert_query = "INSERT INTO terminals (merchant_id, name) VALUES ({$terminal['merchant_id']}, '{$terminal['name']}')";
-      mysqli_query($conn, $insert_query);
+        $terminal = $data['terminal'];
+        $insert_query = "INSERT INTO terminals (merchant_id, name) VALUES (?, ?)";
+        $stmt = $conn->prepare($insert_query);
+        $stmt->bind_param("is", $terminal['merchant_id'], $terminal['name']);
+        $stmt->execute();
+        $stmt->close();
     }
-  
+    
     // Insert new transaction data
     if (isset($data['transaction'])) {
-      $transaction = $data['transaction'];
-      $insert_query = "INSERT INTO transactions (terminal_id, amount) VALUES ({$transaction['terminal_id']}, {$transaction['amount']})";
-      mysqli_query($conn, $insert_query);
+        $transaction = $data['transaction'];
+        $insert_query = "INSERT INTO transactions (terminal_id, amount) VALUES (?, ?)";
+        $stmt = $conn->prepare($insert_query);
+        $stmt->bind_param("id", $transaction['terminal_id'], $transaction['amount']);
+        $stmt->execute();
+        $stmt->close();
     }
-  
+    
     // Update batch total data
     if (isset($data['batch_total'])) {
-      $batch_total = $data['batch_total'];
-      $update_query = "UPDATE terminal_batch_totals SET total={$batch_total['total']} WHERE terminal_id={$batch_total['terminal_id']}";
-      mysqli_query($conn, $update_query);
+        $batch_total = $data['batch_total'];
+        $update_query = "UPDATE terminal_batch_totals SET total=? WHERE terminal_id=?";
+        $stmt = $conn->prepare($update_query);
+        $stmt->bind_param("di", $batch_total['total'], $batch_total['terminal_id']);
+        $stmt->execute();
+        $stmt->close();
     }
-  }
+}
 
 // Format data as JSON response
 $data = [
