@@ -1,5 +1,9 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // CORS Headers
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
@@ -45,12 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Parse JSON data from POST body
     $data = json_decode(file_get_contents('php://input'), true);
   
-    // Update merchant data
-    if (isset($data['merchant'])) {
-      $merchant = $data['merchant'];
-      $update_query = "UPDATE merchants SET name='{$merchant['name']}', address='{$merchant['address']}' WHERE id={$merchant['id']}";
-      mysqli_query($conn, $update_query);
+// Update merchant data
+if (isset($data['merchant'])) {
+    $merchant = $data['merchant'];
+    $update_query = "UPDATE merchants SET name='{$merchant['name']}', address='{$merchant['address']}' WHERE id={$merchant['id']}";
+    if (mysqli_query($conn, $update_query)) {
+        // Query successful
+    } else {
+        // Query failed, log the error
+        error_log("Error updating merchant: " . mysqli_error($conn));
     }
+}
   
     // Insert new terminal data
     if (isset($data['terminal'])) {
