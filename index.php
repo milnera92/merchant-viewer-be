@@ -40,6 +40,40 @@ $transactions_result = mysqli_query($conn, $transactions_query);
 $batch_totals_query = "SELECT * FROM terminal_batch_totals";
 $batch_totals_result = mysqli_query($conn, $batch_totals_query);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Parse JSON data from POST body
+    $data = json_decode(file_get_contents('php://input'), true);
+  
+    // Update merchant data
+    if (isset($data['merchant'])) {
+      $merchant = $data['merchant'];
+      $update_query = "UPDATE merchants SET name='{$merchant['name']}', address='{$merchant['address']}' WHERE id={$merchant['id']}";
+      mysqli_query($conn, $update_query);
+    }
+  
+    // Insert new terminal data
+    if (isset($data['terminal'])) {
+      $terminal = $data['terminal'];
+      $insert_query = "INSERT INTO terminals (merchant_id, name) VALUES ({$terminal['merchant_id']}, '{$terminal['name']}')";
+      mysqli_query($conn, $insert_query);
+    }
+  
+    // Insert new transaction data
+    if (isset($data['transaction'])) {
+      $transaction = $data['transaction'];
+      $insert_query = "INSERT INTO transactions (terminal_id, amount) VALUES ({$transaction['terminal_id']}, {$transaction['amount']})";
+      mysqli_query($conn, $insert_query);
+    }
+  
+    // Update batch total data
+    if (isset($data['batch_total'])) {
+      $batch_total = $data['batch_total'];
+      $update_query = "UPDATE terminal_batch_totals SET total={$batch_total['total']} WHERE terminal_id={$batch_total['terminal_id']}";
+      mysqli_query($conn, $update_query);
+    }
+  }
+
 // Format data as JSON response
 $data = [
     "merchants" => [],
